@@ -1,0 +1,649 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台灣今日天氣查詢</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 30px 15px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: "Microsoft JhengHei", sans-serif;
+  background: linear-gradient(135deg, #dcefff, #eeeaff);
+  color: #34495e;
+}
+
+.container {
+  width: 100%;
+  max-width: 560px;
+  padding: 28px;
+  background: white;
+  border-radius: 24px;
+  box-shadow: 0 10px 35px #617d9930;
+}
+
+h1 {
+  text-align: center;
+  color: #4389bd;
+  margin-bottom: 8px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #91a1ae;
+  font-size: 14px;
+  margin-bottom: 25px;
+}
+
+.search {
+  display: flex;
+  gap: 10px;
+}
+
+input, select {
+  width: 100%;
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid #cbddea;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  background: white;
+}
+
+input:focus, select:focus {
+  border-color: #65a9d9;
+}
+
+.search button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 12px;
+  background: #65a9d9;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #4389bd;
+}
+
+button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.select-area {
+  margin-bottom: 12px;
+}
+
+.select-area label {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 14px;
+  color: #71879a;
+}
+
+#message {
+  text-align: center;
+  color: #d45b5b;
+  font-size: 14px;
+  margin-top: 15px;
+}
+
+.weather {
+  display: none;
+  margin-top: 25px;
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.location {
+  font-size: 21px;
+  font-weight: bold;
+}
+
+.date {
+  color: #91a1ae;
+  font-size: 13px;
+  margin-top: 5px;
+}
+
+.badge {
+  background: #e5f3ff;
+  color: #4389bd;
+  padding: 7px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.current {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 25px 5px;
+}
+
+.icon {
+  font-size: 65px;
+}
+
+.temperature {
+  font-size: 48px;
+  font-weight: bold;
+  color: #4389bd;
+}
+
+.condition {
+  color: #8496a5;
+  font-size: 16px;
+}
+
+.divider {
+  height: 1px;
+  background: #e4edf3;
+  margin: 10px 0 20px;
+}
+
+.section-title {
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.card {
+  background: #f2f8fc;
+  border-radius: 14px;
+  padding: 16px;
+}
+
+.card p {
+  margin: 0 0 8px;
+  font-size: 13px;
+  color: #8295a5;
+}
+
+.card strong {
+  font-size: 25px;
+  color: #4389bd;
+}
+
+.hourly {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+  text-align: center;
+}
+
+.hourly th {
+  color: #8196a5;
+  font-weight: normal;
+  padding: 10px 4px;
+  background: #f2f8fc;
+}
+
+.hourly td {
+  padding: 12px 4px;
+  border-bottom: 1px solid #edf1f5;
+}
+
+.rain {
+  color: #4389bd;
+  font-weight: bold;
+}
+
+.source {
+  text-align: center;
+  font-size: 11px;
+  color: #9aa9b5;
+  margin-top: 20px;
+}
+
+@media(max-width: 400px) {
+  .container {
+    padding: 20px 15px;
+  }
+
+  .temperature {
+    font-size: 40px;
+  }
+
+  .icon {
+    font-size: 55px;
+  }
+
+  .hourly {
+    font-size: 12px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <h1>☀️ 台灣今日天氣</h1>
+  <p class="subtitle">選擇縣市或輸入地區，查詢當地天氣</p>
+
+  <div class="select-area">
+    <label for="citySelect">📍 選擇縣市</label>
+    <select id="citySelect">
+      <option value="">請選擇縣市</option>
+    </select>
+  </div>
+
+  <div class="search">
+    <input
+      id="city"
+      type="text"
+      placeholder="也可以直接輸入地區"
+    >
+    <button id="searchBtn" onclick="searchWeather()">
+      查詢
+    </button>
+  </div>
+
+  <div id="message"></div>
+
+  <div class="weather" id="weather">
+
+    <div class="top">
+      <div>
+        <div class="location" id="location"></div>
+        <div class="date" id="date"></div>
+      </div>
+      <span class="badge">目前天氣</span>
+    </div>
+
+    <div class="current">
+      <div class="icon" id="icon"></div>
+      <div>
+        <div class="temperature" id="temperature"></div>
+        <div class="condition" id="condition"></div>
+        <div class="date" id="feels"></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="details">
+
+      <div class="card">
+        <p>🌡️ 今日最高溫</p>
+        <strong id="maxTemp">--</strong>
+      </div>
+
+      <div class="card">
+        <p>❄️ 今日最低溫</p>
+        <strong id="minTemp">--</strong>
+      </div>
+
+      <div class="card">
+        <p>🌧️ 白天降雨機率</p>
+        <strong id="dayRain">--</strong>
+      </div>
+
+      <div class="card">
+        <p>🌙 夜間降雨機率</p>
+        <strong id="nightRain">--</strong>
+      </div>
+
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="section-title">🌙 今日逐時天氣</div>
+
+    <table class="hourly">
+      <thead>
+        <tr>
+          <th>時間</th>
+          <th>天氣</th>
+          <th>降雨機率</th>
+        </tr>
+      </thead>
+      <tbody id="hourlyData"></tbody>
+    </table>
+
+    <div class="source">
+      資料來源：Open-Meteo
+    </div>
+
+  </div>
+</div>
+
+<script>
+
+// 台灣22個縣市中心座標
+const cities = {
+  "台北市": [25.0330, 121.5654],
+  "新北市": [25.0169, 121.4628],
+  "桃園市": [24.9937, 121.3010],
+  "新竹市": [24.8138, 120.9675],
+  "新竹縣": [24.8387, 121.0177],
+  "苗栗縣": [24.5602, 120.8214],
+  "台中市": [24.1477, 120.6736],
+  "彰化縣": [24.0518, 120.5161],
+  "南投縣": [23.9157, 120.6639],
+  "雲林縣": [23.7092, 120.4313],
+  "嘉義市": [23.4801, 120.4491],
+  "嘉義縣": [23.4518, 120.2555],
+  "台南市": [22.9999, 120.2269],
+  "高雄市": [22.6273, 120.3014],
+  "屏東縣": [22.5519, 120.5487],
+  "宜蘭縣": [24.7021, 121.7378],
+  "花蓮縣": [23.9872, 121.6015],
+  "台東縣": [22.7972, 121.1710],
+  "澎湖縣": [23.5711, 119.5793],
+  "基隆市": [25.1276, 121.7392],
+  "金門縣": [24.4494, 118.3766],
+  "連江縣": [26.1605, 119.9510]
+};
+
+
+// 填入縣市選單
+const citySelect = document.getElementById("citySelect");
+
+Object.keys(cities).forEach(name => {
+  const option = document.createElement("option");
+  option.value = name;
+  option.textContent = name;
+  citySelect.appendChild(option);
+});
+
+
+// 選單選擇時同步輸入框
+citySelect.addEventListener("change", function() {
+  document.getElementById("city").value = this.value;
+});
+
+
+// 天氣代碼
+function getWeather(code) {
+
+  if (code === 0) return ["☀️", "晴朗"];
+  if (code === 1) return ["🌤️", "大致晴朗"];
+  if (code === 2) return ["⛅", "多雲時晴"];
+  if (code === 3) return ["☁️", "陰天"];
+
+  if ([45,48].includes(code))
+    return ["🌫️", "有霧"];
+
+  if ([51,53,55,56,57].includes(code))
+    return ["🌦️", "毛毛雨"];
+
+  if ([61,63,65,66,67].includes(code))
+    return ["🌧️", "下雨"];
+
+  if ([71,73,75,77].includes(code))
+    return ["❄️", "降雪"];
+
+  if ([80,81,82].includes(code))
+    return ["🌧️", "陣雨"];
+
+  if ([85,86].includes(code))
+    return ["🌨️", "陣雪"];
+
+  if ([95,96,99].includes(code))
+    return ["⛈️", "雷雨"];
+
+  return ["🌤️", "天氣資訊"];
+}
+
+
+// 查詢天氣
+async function searchWeather() {
+
+  const city = document.getElementById("city").value.trim();
+  const message = document.getElementById("message");
+  const weather = document.getElementById("weather");
+  const button = document.getElementById("searchBtn");
+
+  if (!city) {
+    message.textContent = "請先選擇或輸入縣市！";
+    weather.style.display = "none";
+    return;
+  }
+
+  message.textContent = "正在查詢天氣...";
+  weather.style.display = "none";
+  button.disabled = true;
+
+  try {
+
+    let latitude;
+    let longitude;
+    let displayName = city;
+
+    // 先使用台灣縣市座標
+    if (cities[city]) {
+
+      latitude = cities[city][0];
+      longitude = cities[city][1];
+
+    } else {
+
+      // 若輸入行政區或其他地名，搜尋台灣地區
+      const geoURL =
+        "https://geocoding-api.open-meteo.com/v1/search"
+        + "?name=" + encodeURIComponent(city)
+        + "&count=20&language=zh&format=json";
+
+      const geoResponse = await fetch(geoURL);
+      const geoData = await geoResponse.json();
+
+      if (!geoData.results || geoData.results.length === 0) {
+        throw new Error("找不到這個地區，請重新輸入！");
+      }
+
+      const place = geoData.results.find(
+        p => p.country_code === "TW"
+      );
+
+      if (!place) {
+        throw new Error("找不到台灣的這個地區！");
+      }
+
+      latitude = place.latitude;
+      longitude = place.longitude;
+
+      displayName = place.name;
+    }
+
+    // 查詢天氣資料
+    const weatherURL =
+      "https://api.open-meteo.com/v1/forecast"
+      + "?latitude=" + latitude
+      + "&longitude=" + longitude
+      + "&current=temperature_2m,apparent_temperature,weather_code"
+      + "&hourly=temperature_2m,precipitation_probability,weather_code"
+      + "&daily=temperature_2m_max,temperature_2m_min"
+      + "&forecast_days=1"
+      + "&timezone=auto";
+
+    const response = await fetch(weatherURL);
+    const data = await response.json();
+
+    if (!data.current || !data.daily || !data.hourly) {
+      throw new Error("目前無法取得天氣資料！");
+    }
+
+    const current = data.current;
+    const daily = data.daily;
+    const hourly = data.hourly;
+
+    const info = getWeather(current.weather_code);
+    const today = daily.time[0];
+
+    // 顯示基本資料
+    document.getElementById("location").textContent =
+      "📍 " + displayName;
+
+    document.getElementById("date").textContent = today;
+
+    document.getElementById("icon").textContent = info[0];
+
+    document.getElementById("condition").textContent = info[1];
+
+    document.getElementById("temperature").textContent =
+      Math.round(current.temperature_2m) + "°C";
+
+    document.getElementById("feels").textContent =
+      "體感溫度 " +
+      Math.round(current.apparent_temperature) + "°C";
+
+    document.getElementById("maxTemp").textContent =
+      Math.round(daily.temperature_2m_max[0]) + "°C";
+
+    document.getElementById("minTemp").textContent =
+      Math.round(daily.temperature_2m_min[0]) + "°C";
+
+    // 白天與夜間降雨機率
+    const dayHours = hourly.time
+      .map((time, i) => ({time, i}))
+      .filter(item =>
+        item.time.startsWith(today) &&
+        Number(item.time.substring(11,13)) >= 6 &&
+        Number(item.time.substring(11,13)) < 18
+      );
+
+    const nightHours = hourly.time
+      .map((time, i) => ({time, i}))
+      .filter(item =>
+        item.time.startsWith(today) &&
+        (Number(item.time.substring(11,13)) < 6 ||
+         Number(item.time.substring(11,13)) >= 18)
+      );
+
+    function maxRain(hours) {
+      const values = hours
+        .map(item => hourly.precipitation_probability[item.i])
+        .filter(value => value !== null);
+
+      return values.length
+        ? Math.max(...values) + "%"
+        : "暫無資料";
+    }
+
+    document.getElementById("dayRain").textContent =
+      maxRain(dayHours);
+
+    document.getElementById("nightRain").textContent =
+      maxRain(nightHours);
+
+    // 顯示今日剩餘逐時預報
+    const now = new Date(current.time).getTime();
+
+    const remaining = hourly.time
+      .map((time, i) => ({time, i}))
+      .filter(item =>
+        item.time.startsWith(today) &&
+        new Date(item.time).getTime() >= now
+      );
+
+    const evening = remaining.filter(item =>
+      Number(item.time.substring(11,13)) >= 17
+    );
+
+    const showHours = evening.length ? evening : remaining;
+
+    const tbody = document.getElementById("hourlyData");
+    tbody.innerHTML = "";
+
+    if (showHours.length === 0) {
+
+      tbody.innerHTML =
+        '<tr><td colspan="3">今日逐時預報已結束</td></tr>';
+
+    } else {
+
+      showHours.forEach(item => {
+
+        const i = item.i;
+        const info = getWeather(hourly.weather_code[i]);
+        const rain = hourly.precipitation_probability[i];
+
+        const tr = document.createElement("tr");
+
+        const values = [
+          item.time.substring(11,16),
+          info[0] + " " + info[1],
+          rain === null ? "暫無資料" : rain + "%"
+        ];
+
+        values.forEach((value, index) => {
+          const td = document.createElement("td");
+          td.textContent = value;
+
+          if (index === 2) {
+            td.className = "rain";
+          }
+
+          tr.appendChild(td);
+        });
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    weather.style.display = "block";
+    message.textContent = "";
+
+  } catch (error) {
+
+    message.textContent =
+      error.message || "查詢失敗，請確認網路連線。";
+
+    weather.style.display = "none";
+
+  } finally {
+
+    button.disabled = false;
+
+  }
+}
+
+
+// Enter 鍵查詢
+document.getElementById("city").addEventListener(
+  "keydown",
+  function(event) {
+    if (event.key === "Enter") {
+      searchWeather();
+    }
+  }
+);
+
+
+// 預設查詢台北
+citySelect.value = "台北市";
+document.getElementById("city").value = "台北市";
+searchWeather();
+
+</script>
+
+</body>
+</html>
+
